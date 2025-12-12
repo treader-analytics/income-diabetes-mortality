@@ -1,0 +1,183 @@
+---
+title: "Income and Diabetes Mortality at the County Level"
+author: "Trevor Reader"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: true
+    theme: cosmo
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE
+)
+library(tidyverse)
+library(janitor)
+```
+
+# Introduction
+
+This project examines how income and health outcomes align across U.S. counties. The central question is: **Do counties with lower median household income show higher diabetes mortality?** This is a frequent question in policy discussions because diabetes is both preventable and unevenly distributed across communities.
+
+The dataset used here is **synthetic**, designed to resemble county-level socioeconomic and health indicators. It includes:
+
+- median household income  
+- diabetes mortality (deaths per 100,000 people)  
+- region  
+- urban vs. rural classification  
+- population size  
+
+Because the data are simulated, the goal is not to draw real-world conclusions. Instead, this serves as a demonstration of a clear, policy-oriented analysis workflow.
+
+# Data Overview
+
+```{r load-data}
+df_raw <- read_csv("health_income_county.csv") %>%
+  clean_names()
+
+glimpse(df_raw)
+summary(df_raw)
+```
+
+```{r summary-table}
+df_raw %>%
+  summarise(
+    n_counties  = n(),
+    mean_income = mean(median_income),
+    sd_income   = sd(median_income),
+    mean_diab   = mean(diabetes_mortality),
+    sd_diab     = sd(diabetes_mortality)
+  )
+```
+
+# Exploratory Analysis
+
+## Distribution of Median Income
+
+```{r hist-income}
+df_raw %>%
+  ggplot(aes(x = median_income)) +
+  geom_histogram(bins = 30) +
+  labs(
+    title = "Distribution of Median Income Across Counties",
+    x = "Median household income (USD)",
+    y = "Number of counties"
+  )
+```
+
+## Distribution of Diabetes Mortality
+
+```{r hist-diabetes}
+df_raw %>%
+  ggplot(aes(x = diabetes_mortality)) +
+  geom_histogram(bins = 30) +
+  labs(
+    title = "Distribution of Diabetes Mortality Rates",
+    x = "Diabetes mortality (deaths per 100k)",
+    y = "Number of counties"
+  )
+```
+
+## Income vs. Diabetes Mortality
+
+```{r scatter-income}
+df_raw %>%
+  ggplot(aes(x = median_income, y = diabetes_mortality)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = TRUE, color = "red") +
+  labs(
+    title = "Income vs. Diabetes Mortality",
+    x = "Median household income (USD)",
+    y = "Diabetes mortality (deaths per 100k)"
+  )
+```
+
+# Modeling
+
+## Simple Linear Regression
+
+```{r model-simple}
+model_simple <- lm(diabetes_mortality ~ median_income, data = df_raw)
+summary(model_simple)
+```
+
+The coefficient on income is small and not statistically significant. The R-squared value is near zero, meaning income explains little of the variation in diabetes mortality.
+
+## Mortality by Region
+
+```{r region-boxplot}
+df_raw %>%
+  ggplot(aes(x = region, y = diabetes_mortality)) +
+  geom_boxplot() +
+  labs(
+    title = "Diabetes Mortality by Region",
+    x = "Region",
+    y = "Diabetes mortality (deaths per 100k)"
+  )
+```
+
+## Urban vs. Rural Differences
+
+```{r urban-boxplot}
+df_raw %>%
+  ggplot(aes(x = urban_rural, y = diabetes_mortality)) +
+  geom_boxplot() +
+  labs(
+    title = "Diabetes Mortality in Urban vs Rural Counties",
+    x = "",
+    y = "Diabetes mortality (deaths per 100k)"
+  )
+```
+
+## Multivariable Regression
+
+```{r model-multi}
+model_multi <- lm(
+  diabetes_mortality ~ median_income + region + urban_rural,
+  data = df_raw
+)
+summary(model_multi)
+```
+
+Income, region, and urban/rural status all remain weak predictors, and the model’s explanatory power stays low.
+
+# Policy Interpretation
+
+If these results came from real county-level data, they would suggest:
+
+- Income does not reliably predict diabetes mortality  
+- Region and urban/rural status add little explanatory value  
+- Policymakers would need more detailed variables (e.g., demographics, insurance coverage, health behaviors, access to care) to make targeted decisions  
+
+The muted patterns here reflect the **synthetic** nature of the dataset rather than real-world disease burden, which usually shows stronger socioeconomic gradients.
+
+# Limitations
+
+- The dataset is synthetic; results cannot be generalized  
+- Important predictors of diabetes mortality (age distribution, obesity rates, clinical access, etc.) are missing  
+- Linear modeling may oversimplify complex relationships  
+
+# Conclusion
+
+This project demonstrates a clean, complete workflow for analyzing county-level health disparities:
+
+- importing and preparing data  
+- exploring variable distributions  
+- fitting regression models  
+- interpreting findings in a policy context  
+
+Although this synthetic dataset does not show strong relationships between income and diabetes mortality, the workflow shown here applies directly to real public datasets such as Census ACS indicators, CDC mortality files, or County Health Rankings.
+
+# Reproducibility
+
+- Data file: `health_income_county.csv`  
+- R version: `r getRversion()`  
+- Key packages: `tidyverse`, `janitor`  
+
+Running this R Markdown file with the dataset in the same directory will reproduce all results and visualizations.
