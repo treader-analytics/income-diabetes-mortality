@@ -1,5 +1,7 @@
 ![Project Preview](preview.png)
 
+[View the full HTML report](income_diabetes_mortality.html)
+
 # Income and Diabetes Mortality at the County Level
 
 This project examines how income and health outcomes align across U.S. counties. The central question is:
