@@ -1,7 +1,7 @@
 ---
 title: "Income and Diabetes Mortality at the County Level"
 author: "Trevor Reader"
-date: "`r format(Sys.Date(), '12% / %11 / %2025')`"
+date: "12 / 11 / 2025"
 output:
   html_document:
     toc: true
@@ -182,3 +182,4 @@ Although this synthetic dataset does not show strong relationships between incom
 
 
 Running this R Markdown file with the dataset in the same directory will reproduce all results and visualizations.
+
